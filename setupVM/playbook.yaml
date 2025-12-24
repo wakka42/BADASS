@@ -1,0 +1,56 @@
+- name: setup
+  remote_user: root
+  hosts: all
+  tasks:
+    - name: Install dependencies
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - gnupg
+        - lsb-release
+        - vim
+        - software-properties-common
+
+    - name: Add Docker GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker APT repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+        state: present
+
+    - name: Install Docker Engine
+      apt:
+        name: docker-ce
+        state: present
+        update_cache: true
+
+    - name: Add GNS3 APT repository
+      apt_repository:
+        repo: ppa:gns3/ppa
+        state: present
+
+    - name: Install GNS3
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - gns3-gui
+        - gns3-server
+
+    - name: Add user to multiple groups (don't forget wireshark by hand)
+      user:
+        name: wakka
+        groups:
+          - sudo
+          - docker
+          - libvirt
+          - kvm
+          - ubridge
+        append: yes

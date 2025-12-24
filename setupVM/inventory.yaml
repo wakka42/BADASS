@@ -1,0 +1,4 @@
+all:
+  hosts:
+    ubuntu:
+      ansible_host: X.X.X.X
