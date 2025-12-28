@@ -31,7 +31,7 @@ There are many topics to know about before entering this part:
 The main subject of this part is the VXLAN.
 
 VXLAN stands for Virtual eXtensible Local Area Network. By his name we vcan assume than it is close to a VLAN.
-VXLAN comes to overcome some issues we have with basic VLAN like the numbers of VLANs on a network (4096) by relying on the layer 3 instead of the layer 2.
+VXLAN comes to overcome some issues we have with basic VLAN like the numbers of VLANs on a network (4096) and encapsulates Layer 2 traffic over a Layer 3 network.
 
 Here is the topology we have for this part
 
@@ -39,7 +39,7 @@ Here is the topology we have for this part
 
 The first step is to make the routers communicate each other through the network. For this we need to setup the interfaces connected to the switch, we'll give them ip addresses on the same network.
 
-`ip a add 10.0.0.1/24 dev eth0` and `ip a add 10.0.0.2/24 dev eth0`
+`ip a add 10.1.1.1/24 dev eth0` and `ip a add 10.1.1.2/24 dev eth0`
 
 They can now ping each other.
 
@@ -48,9 +48,17 @@ The ip addresses of the hosts will be 30.0.0.1 and 30.0.0.2 as shown in the subj
 Even though the host have ip adresses on the same network, they can't communicate.
 For what reason ? When a device want to communicate with an ip on the same subnet, it will broadcast a ARP request in order to know the mac address of this ip. A router will no forward such a packet.
 The solution here is to simulate that the routers don't exist and make them behave like we are on the same physical network.
-For this we have a solution, a VXLAN, a "tunnel" that will encapsulate the ARP request and forward it through the VXLAN as we are on the same physical network.
+For this we have a solution, a VXLAN, a "tunnel" that will encapsulate the ARP request and forward it through the VXLAN as we are on the same physical network by encapsulating the frames.
 
-For this mission, the subjetc want us to create a bridge br0 and a vxlan attached on the bridge to the eth1 interface.
+Here is an exemple of a frame not encapsulated before passing through the vxlan
+
+![Frame not encapsulated](https://github.com/wakka42/BADASS/blob/main/Media/no_encap.png)
+
+Now, take a look of the src and dst IPs of the encapsulation, those are the IP's of the routers.
+
+![Frame encapsulated](https://github.com/wakka42/BADASS/blob/main/Media/encap.png)
+
+Let's begin, the subject want us to create a bridge br0 and a vxlan attached on the bridge to the eth1 interface.
 
 Here are the commands to create the bridge interface and turn it on if not.
 
@@ -62,8 +70,8 @@ Then we can create the vxlan, there is many fields to create it.
 ip link add vxlan10 type vxlan \
 id 10 \
 dstport 4789 \
-local 10.0.0.1 \
-remote 10.0.0.2 \
+local 10.1.1.1 \
+remote 10.1.1.2 \
 dev eth0
 ```
 
@@ -78,7 +86,7 @@ All we need know is to attach the vxlan and et1 interface to the bridge
 `ip link set vxlan10 master br0` and `ip link set eth1 master br0`
 
 We successfully made a unicast VXLAN, we now need to set up a multicast one for BUM (Broadcast, Unknow unicast, ARP) traffic.
-For this we only hav eto set up a group when creating the vxlan.
+For this we only have eto set up a group when creating the vxlan.
 
 Here are the command updated
 
@@ -86,8 +94,10 @@ Here are the command updated
 ip link add vxlan10 type vxlan \
 id 10 \
 dstport 4789 \
-local 10.0.0.1 \
-remote 10.0.0.2 \
 dev eth0 \
 group 239.1.1.1
 ```
+
+But what about my unicast ? Setting up a multicast mode still allow unicast sending on known destination but will boadcast on other.
+
+## Part 3

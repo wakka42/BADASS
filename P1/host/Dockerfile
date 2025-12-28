@@ -5,6 +5,7 @@ RUN apk update && apk add --no-cache \
     iproute2 \
     iputils \
     tcpdump \
-    bash
+    bash \
+    vim
 
 CMD ["/bin/sh"]

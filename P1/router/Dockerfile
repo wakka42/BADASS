@@ -6,7 +6,8 @@ RUN apk update && apk add --no-cache \
     iproute2 \
     iputils \
     tcpdump \
-    bash
+    bash \
+    vim
 
 RUN sed -i 's/bgpd=no/bgpd=yes/' /etc/frr/daemons && \
     sed -i 's/ospfd=no/ospfd=yes/' /etc/frr/daemons && \
