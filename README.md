@@ -2,7 +2,7 @@
 
 This repository contains the documentation on how we completed this 42 subject on networks
 
-## Part 1
+## Part 1: GNS3 configuration with Docker
 
 The fisrt things to do was to set up a VM with a GUI to install and use GNS3 and Docker
 
@@ -19,7 +19,7 @@ What is Docker ?
 - To begin, we used ansible to install the necessary repositories, packages, and modify our local user (see the P1/setupVM folder)
 - Then we created the 2 images needed to build a host and a router in order to import them in GNS3 (see the P1/host and P1/router folders)
 
-## Part 2
+## Part 2: Discovering a VXLAN
 
 There are many topics to know about before entering this part:
 
@@ -33,9 +33,11 @@ The main subject of this part is the VXLAN.
 VXLAN stands for Virtual eXtensible Local Area Network. By his name we vcan assume than it is close to a VLAN.
 VXLAN comes to overcome some issues we have with basic VLAN like the numbers of VLANs on a network (4096) and encapsulates Layer 2 traffic over a Layer 3 network.
 
-Here is the topology we have for this part
+### Topology
 
 ![VXLAN Network topology](https://github.com/wakka42/BADASS/blob/main/Media/VXLAN_network_topology.png)
+
+### Walkthrough
 
 The first step is to make the routers communicate each other through the network. For this we need to setup the interfaces connected to the switch, we'll give them ip addresses on the same network.
 
@@ -57,6 +59,10 @@ Here is an exemple of a frame not encapsulated before passing through the vxlan
 Now, take a look of the src and dst IPs of the encapsulation, those are the IP's of the routers.
 
 ![Frame encapsulated](https://github.com/wakka42/BADASS/blob/main/Media/encap.png)
+
+Here is a scheme of a VXLAN encapsulation
+
+![Encapsulation Scheme](https://github.com/wakka42/BADASS/blob/main/Media/encapsulation_schema.webp)
 
 Let's begin, the subject want us to create a bridge br0 and a vxlan attached on the bridge to the eth1 interface.
 
@@ -100,4 +106,39 @@ group 239.1.1.1
 
 But what about my unicast ? Setting up a multicast mode still allow unicast sending on known destination but will boadcast on other.
 
-## Part 3
+## Part 3: Discovering BGP with EVPN
+
+### Topology
+
+![BGP Topology](https://github.com/wakka42/BADASS/blob/main/Media/BGP_topology.png)
+
+### EVPN Overview
+
+![EVPN Overview](https://github.com/wakka42/BADASS/blob/main/Media/BGP_schema.png)
+
+### Terminology
+
+AS: Autonomous System
+
+CE: Customer Edge device, e.g., a host, router, or switch.
+
+Control Plane: Manage network layout.
+
+Data Plane: Sends and receives data.
+
+EVI: An EVPN instance spanning the Provider Edge (PE) devices participating in that EVPN.
+
+Ethernet Segment (ES): When a customer site (device or network) is connected to one or more PEs via a set of Ethernet links, then that set of links is referred to as an 'Ethernet segment'.
+
+Ethernet Segment Identifier (ESI): A unique non-zero identifier that identifies an Ethernet segment is called an 'Ethernet Segment Identifier'.
+
+### Requirements
+
+In the subject we have to use BGP EVPN with a loopback interface and OSPF in a spine/leaves architecture.
+As we know, our hosts are separated by routers so we need to work with a layer 2 overlay using a vxlan.
+In our project, OSPF will provide Layer 3 underlay routing, BGP EVPN will act as the control plane for the Layer 2 overlay, and VXLAN will carry the overlay data plane.
+The loopback interface is used instead of the eth0 interfcae for exemple because it is a virtual one. A physical interface can be put down because of an unplugged cable etc, the loopback will never be down except if the router itself is down and this is an other problem ^^
+
+### Walkthrough
+
+Soon<sup>TM</sup>
