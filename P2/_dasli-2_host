@@ -1,0 +1,10 @@
+# Configure eth0 interface
+
+# Bring up eth0 interface at boot
+auto eth0
+# Ethernet interface configuration
+iface eth0 inet static
+	# Set IP address
+	address 30.1.1.2
+	# Set netmask
+	netmask 255.255.255.0

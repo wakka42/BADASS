@@ -1,0 +1,47 @@
+# Configure eth0 interface
+
+# Bring up eth0 interface at boot
+auto eth0
+# Ethernet interface configuration
+iface eth0 inet static
+	# Set IP address
+	address 10.1.1.2
+	# Set netmask
+	netmask 255.255.255.0
+
+
+# Configure VXLAN tunnel
+
+# Bring up vxlan10 interface at boot
+auto vxlan10
+# VXLAN interface configuration
+iface vxlan10 inet manual
+	# Create VXLAN interface with unicast
+	pre-up /sbin/ip link add $IFACE type vxlan id 10 dev eth0 remote 10.1.1.1 local 10.1.1.2 dstport 4789
+	# Bring up VXLAN interface
+	up ip link set $IFACE up
+	# Bring down VXLAN interface
+	down ip link set $IFACE down
+	# Delete VXLAN interface
+	post-down ip link del $IFACE
+
+# Configure bridge
+
+# Bring up br0 interface at boot
+auto br0
+# Bridge interface configuration
+iface br0 inet manual
+	# Require eth1 and vxlan10
+	requires eth1 vxlan10
+	# Create bridge
+	pre-up ip link add $IFACE type bridge
+	# Bring up bridge
+	up ip link set $IFACE up
+	# Add eth1 to bridge
+	post-up brctl addif $IFACE eth1 
+	# Add vxlan10 to bridge
+	post-up brctl addif $IFACE vxlan10
+	# Bring down bridge
+	down ip link set $IFACE down
+	# Delete bridge
+	post-down ip link del $IFACE
