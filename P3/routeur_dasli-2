@@ -1,0 +1,68 @@
+bash
+ip link add br0 type bridge
+ip link set br0 up
+
+ip link add vxlan10 type vxlan id 10 dstport 4789
+ip link set vxlan10 up
+
+ip link set vxlan10 master br0
+ip link set eth1 master br0
+exit
+
+vtysh
+
+conf t
+
+interface lo
+ip address 1.1.1.2/32
+ip ospf area 0
+
+interface eth0
+ip address 10.1.1.2/30
+ip ospf area 0
+
+router ospf
+
+router bgp 42
+neighbor 1.1.1.1 remote-as 42
+neighbor 1.1.1.1 update-source lo
+
+address-family l2vpn evpn
+neighbor 1.1.1.1 activate
+advertise-all-vni
+exit-address-family
+
+RUNNING CONFIGURATION
+
+
+!
+frr version 10.5.0
+frr defaults traditional
+hostname routeur_dasli-2
+log syslog informational
+service integrated-vtysh-config
+!
+interface eth0
+ ip address 10.1.1.2/30
+ ip ospf area 0
+exit
+!
+interface lo
+ ip address 1.1.1.2/32
+ ip ospf area 0
+exit
+!
+router bgp 42
+ neighbor 1.1.1.1 remote-as 42
+ neighbor 1.1.1.1 update-source lo
+ !
+ address-family l2vpn evpn
+  neighbor 1.1.1.1 activate
+  advertise-all-vni
+ exit-address-family
+exit
+!
+router ospf
+exit
+!
+end

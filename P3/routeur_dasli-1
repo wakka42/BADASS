@@ -1,0 +1,77 @@
+vtysh
+
+conf t
+interface eth0
+ip address 10.1.1.1/30
+ip ospf area 0
+
+interface eth1
+ip address 10.1.1.5/30
+ip ospf area 0
+
+interface eth2
+ip address 10.1.1.9/30
+ip ospf area 0
+
+interface lo
+ip address 1.1.1.1/32
+ip ospf area 0
+
+router ospf
+
+router bgp 42
+bgp router-id 1.1.1.1
+neighbor ibgp peer-group
+neighbor ibgp remote-as 42
+bgp listen range 1.1.1.0/29 peer-group ibgp
+
+address-family l2vpn evpn
+neighbor ibgp activate
+neighbor ibgp route-reflector-client
+exit-address-family
+
+RUNNING CONFIGURATION
+
+!
+frr version 10.5.0
+frr defaults traditional
+hostname routeur_dasli-1
+log syslog informational
+service integrated-vtysh-config
+!
+interface eth0
+ ip address 10.1.1.1/30
+ ip ospf area 0
+exit
+!
+interface eth1
+ ip address 10.1.1.5/30
+ ip ospf area 0
+exit
+!
+interface eth2
+ ip address 10.1.1.9/30
+ ip ospf area 0
+exit
+!
+interface lo
+ ip address 1.1.1.1/32
+ ip ospf area 0
+exit
+!
+router bgp 42
+ bgp router-id 1.1.1.1
+ neighbor ibgp peer-group
+ neighbor ibgp remote-as 42
+ bgp listen range 1.1.1.0/29 peer-group ibgp
+ !
+ address-family l2vpn evpn
+  neighbor ibgp activate
+  neighbor ibgp route-reflector-client
+ exit-address-family
+exit
+!
+router ospf
+exit
+!
+end

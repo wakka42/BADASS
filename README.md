@@ -141,4 +141,98 @@ The loopback interface is used instead of the eth0 interfcae for exemple because
 
 ### Walkthrough
 
-Soon<sup>TM</sup>
+IP Addressing (based on the subject exemples):
+
+- Host: From 20.1.1.1 to 20.1.1.3
+- Loopback: From 1.1.1.1 to 1.1.1.4
+- EthX: 3 separated networks all linked to router_dasli-1.
+
+we use a /30 mask so 2 Ips avalaiable (4 in total)
+
+router_dasli-1 :
+
+- eth0: 10.1.1.1
+- eth1: 10.1.1.5
+- eth2: 10.1.1.9
+
+router-dasli-2 :
+
+- eth0: 10.1.1.2
+
+router-dasli-3 :
+
+- eth1: 10.1.1.6
+
+router-dasli-4 :
+
+- eth2: 10.1.1.10
+
+VXLAN setup (Leaf only)
+
+Warning: For the VXLAN we previously used the local/remote for the unicast, then the group for the multicast (flood and learn). There is no need of this no more because EVPN as control plane handles the learning.
+
+ip link add br0 type bridge
+ip link set br0 up
+ip link add vxlan10 type vxlan id 10 dstport 4789
+ip link set vxlan10 up
+ip link set vxlan10 master br0
+ip link set ethX master br0
+
+OSPF router_dasli-1 setup example
+
+OSPF is based on area to work fine. Because we are on a small network (4 routers), we need only one area called area 0.
+
+vtysh
+
+conf t
+router ospf 1
+network 10.1.1.0 0.0.0.3 area 0
+network 10.1.1.4 0.0.0.3 area 0
+network 10.1.1.8 0.0.0.3 area 0
+network 1.1.1.1/32 area 0
+
+Warning; This is how I configured the routers in instance mode but with frr we have to use the interface-based OSPF, so the setting is different and we set the Ips at the same time.
+
+vtysh
+
+conf t
+interface eth0
+ip address 10.1.1.1/30
+ip ospf area 0
+
+interface eth1
+ip address 10.1.1.5/30
+ip ospf area 0
+
+interface eth2
+ip address 10.1.1.9/30
+ip ospf area 0
+
+interface lo
+ip address 1.1.1.1/32
+ip ospf area 0
+
+router ospf
+
+BGP EVPN Setup Spine
+
+router bgp 42
+neighbor ibgp peer-group
+neighbor ibgp remote-as 42
+bgp listen range 1.1.1.0/29 peer-group ibgp
+
+address-family l2vpn evpn
+neighbor ibgp activate
+neighbor ibgp route-reflector-client
+exit-address-family
+
+BGP EVPN Setup Leaf
+
+router bgp 42
+neighbor 1.1.1.1 remote-as 42
+neighbor 1.1.1.1 update-source lo
+
+address-family l2vpn evpn
+neighbor 1.1.1.1 activate
+advertise-all-vni
+exit-address-family
