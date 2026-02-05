@@ -1,0 +1,28 @@
+# Enable OSPF routing protocol
+router ospf
+  # Advertise the 10.1.1.0/24 subnet in OSPF area 0
+  network 10.1.1.0/24 area 0
+  # Advertise the 1.1.1.0/24 subnet in OSPF area 0
+  network 1.1.1.0/24 area 0
+!
+# Enable BGP routing protocol with AS number 42
+router bgp 42
+  # Create a peer group
+  neighbor ibgp peer-group
+  # Set the remote AS number for peer group to 42
+  neighbor ibgp remote-as 42
+  # Use the loopback interface as the source for BGP updates
+  neighbor ibgp update-source lo
+  # Enable dynamic BGP neighbor discovery for the 1.1.1.0/24 range
+  bgp listen range 1.1.1.0/24 peer-group ibgp
+  !
+  # L2VPN EVPN address family configuration
+  address-family l2vpn evpn
+    # Activate EVPN capability
+    neighbor ibgp activate
+    # Configure this router as a route reflector client
+    neighbor ibgp route-reflector-client
+  # Exit L2VPN EVPN address family configuration
+  exit-address-family
+  !
+!

@@ -1,0 +1,24 @@
+# Enable OSPF routing protocol
+router ospf
+  # Advertise the 10.1.1.0/24 subnet in OSPF area 0
+  network 10.1.1.0/24 area 0
+  # Advertise the 1.1.1.0/24 subnet in OSPF area 0
+  network 1.1.1.0/24 area 0
+!
+# Enable BGP routing protocol with AS number 42
+router bgp 42
+  # Configure BGP neighbor with IP 1.1.1.1 and remote AS 42
+  neighbor 1.1.1.1 remote-as 42
+  # Use the loopback interface as the source for BGP updates
+  neighbor 1.1.1.1 update-source lo
+  !
+  # L2VPN EVPN address family configuration
+  address-family l2vpn evpn
+    # Activate EVPN capability
+    neighbor 1.1.1.1 activate
+    # Advertise all locally configured VNIs
+    advertise-all-vni
+  # Exit L2VPN EVPN address family configuration
+  exit-address-family
+  !
+!
