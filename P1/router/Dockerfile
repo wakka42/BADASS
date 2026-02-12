@@ -10,3 +10,10 @@ ENV ENV="/root/.ashrc"
 COPY    ./configs/daemons \
         ./configs/vtysh.conf \
         /etc/frr/
+
+COPY --from=hairyhenderson/gomplate:stable /gomplate /bin/gomplate
+COPY ./configs/router.conf /tmp
+
+COPY    ./configs/docker-entrypoint-pre.sh /run
+ENTRYPOINT ["/run/docker-entrypoint-pre.sh"]
+CMD ["/usr/lib/frr/docker-start"]
