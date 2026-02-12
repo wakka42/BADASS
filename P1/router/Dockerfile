@@ -1,4 +1,4 @@
-FROM quay.io/frrouting/frr:master
+FROM quay.io/frrouting/frr:10.5.1
 
 RUN apk add iproute2
 
